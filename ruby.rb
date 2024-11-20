@@ -53,3 +53,16 @@ def remove_duplicates(arr)
   seen = Set.new
   arr.select { |item| seen.add?(item) }
 end
+
+
+def rot13(message)
+  message.chars.map do |char|
+
+    if char =~ /[A-Za-z]/
+      base = char <= 'Z' ? 'A'.ord : 'a'.ord
+      ((char.ord % base + 13) % 26 + base).chr
+    else
+      char
+    end
+  end.join
+end
