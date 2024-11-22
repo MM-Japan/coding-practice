@@ -66,3 +66,15 @@ def rot13(message)
     end
   end.join
 end
+
+
+def two_sum(nums, target)
+  hash = {}
+  nums.each_with_index do |n, i|
+      complement = target - n
+      if hash.key?(complement)
+          return [hash[complement], i]
+      end
+      hash[n] = i
+  end
+end
