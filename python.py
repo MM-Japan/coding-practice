@@ -19,3 +19,13 @@ def break_chocolate(n, m):
 
 def create_phone_number(n):
     return f"({n[0]}{n[1]}{n[2]}) {n[3]}{n[4]}{n[5]}-{n[6]}{n[7]}{n[8]}{n[9]}"
+
+
+def get_middle(s):
+    n = len(s)
+    mid = n // 2
+
+    if n % 2 == 0:
+        return s[mid - 1:mid + 1]
+    else:
+        return s[mid]
