@@ -37,6 +37,20 @@ function insertPayments(table, payments, formatFn) {
   });
 }
 
+function calculateDiscount(subtotal, code) {
+  const discounts = {
+    'SAVE10': 0.10,
+    'SAVE20': 0.20
+  };
+  const rate = discounts[code] || 0;
+  return subtotal * rate;
+}
+
+function totalPayments(payments) {
+  if (!payments || !payments.length) return 0;
+  return payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+}
+
 function doPost(e) {
   try {
     Logger.log("doPost started");
@@ -46,6 +60,20 @@ function doPost(e) {
     const requestData = JSON.parse(e.postData.contents);
 
     Logger.log("Parsed request data: %s", JSON.stringify(requestData));
+
+    // Calculate totals and discounts
+    const subTotal = parseFloat(requestData.priceSubTotal) || 0;
+    const discountAmount = calculateDiscount(subTotal, requestData.discountCode);
+    const priceDiscount =
+      requestData.priceDiscount !== undefined ?
+        parseFloat(requestData.priceDiscount) : discountAmount;
+    const priceTotal =
+      requestData.priceTotal !== undefined ?
+        parseFloat(requestData.priceTotal) : subTotal - priceDiscount;
+    const paymentTotal = totalPayments(requestData.payments);
+    const outstandingBalance =
+      requestData.outstandingBalance !== undefined ?
+        parseFloat(requestData.outstandingBalance) : priceTotal - paymentTotal;
 
     // Set template ID based on condition
     let templateId = '1MYzLe-RiaAeGaX0SbPNSq7X_6fw78x2sNaYrkKobwag';
@@ -89,10 +117,10 @@ function doPost(e) {
       '{{extraGuestCost}}': formatCurrency(requestData.extraGuestCost || 0),
       '{{extraGuestQuantity}}': requestData.extraGuestQuantity || '',
       '{{totalExtraGuestCost}}': formatCurrency(requestData.totalExtraGuestCost || 0),
-      '{{priceSubTotal}}': formatCurrency(requestData.priceSubTotal || 0),
-      '{{priceDiscount}}': formatCurrency(requestData.priceDiscount || 0),
-      '{{priceTotal}}': formatCurrency(requestData.priceTotal || 0),
-      '{{outstandingBalance}}': formatCurrency(requestData.outstandingBalance || 0)
+      '{{priceSubTotal}}': formatCurrency(subTotal),
+      '{{priceDiscount}}': formatCurrency(priceDiscount),
+      '{{priceTotal}}': formatCurrency(priceTotal),
+      '{{outstandingBalance}}': formatCurrency(outstandingBalance)
     };
     for (let [key, value] of Object.entries(replacements)) {
       body.replaceText(key, value);
